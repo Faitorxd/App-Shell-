@@ -1,0 +1,86 @@
+/**
+ * ========================================================
+ *  AgroCesar Marketplace — Sistema de Diseño (tokens.css)
+ *  Propietario: Walter Yesid Otero Torres (App Shell)
+ *  Versión: 1.0.0
+ *
+ *  Este archivo es la ÚNICA fuente de verdad de variables
+ *  visuales. Lo carga el Shell y los MFEs lo consumen
+ *  sin duplicar definiciones.
+ * ========================================================
+ */
+
+/* ── Importar tipografía desde Google Fonts ─────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Paleta de colores ──────────────────────────────── */
+:root {
+  /* Primarios */
+  --agro-primario:          #2e7d32;   /* Verde agricultura */
+  --agro-primario-hover:    #1b5e20;
+  --agro-primario-light:    #e8f5e9;
+  --agro-secundario:        #fbc02d;   /* Sol / Maíz */
+  --agro-secundario-hover:  #f9a825;
+  --agro-secundario-light:  #fffde7;
+
+  /* Semánticos */
+  --agro-exito:             #10b981;
+  --agro-advertencia:       #f59e0b;
+  --agro-error:             #ef4444;
+  --agro-error-light:       #fee2e2;
+  --agro-info:              #3b82f6;
+
+  /* Neutros */
+  --agro-fondo:             #f4fbf7;
+  --agro-fondo-gradiente:   linear-gradient(135deg, #f4fbf7 0%, #e8f5e9 50%, #fffde7 100%);
+  --agro-superficie:        #ffffff;
+  --agro-borde:             rgba(46, 125, 50, 0.15);
+  --agro-texto-principal:   #111827;
+  --agro-texto-secundario:  #6b7280;
+  --agro-texto-inverso:     #ffffff;
+
+  /* Verde acción */
+  --agro-verde-accion:      #10b981;
+
+  /* ── Tipografía ──────────────────────────────────── */
+  --agro-fuente:            'Inter', system-ui, -apple-system, sans-serif;
+  --agro-fuente-size-xs:    0.75rem;
+  --agro-fuente-size-sm:    0.875rem;
+  --agro-fuente-size-md:    1rem;
+  --agro-fuente-size-lg:    1.125rem;
+  --agro-fuente-size-xl:    1.25rem;
+  --agro-fuente-size-2xl:   1.5rem;
+  --agro-fuente-size-3xl:   1.875rem;
+
+  /* ── Espaciado ───────────────────────────────────── */
+  --agro-espaciado-xs:      4px;
+  --agro-espaciado-sm:      8px;
+  --agro-espaciado-md:      16px;
+  --agro-espaciado-lg:      24px;
+  --agro-espaciado-xl:      32px;
+  --agro-espaciado-2xl:     48px;
+
+  /* ── Bordes y radios ─────────────────────────────── */
+  --agro-borde-radius-sm:   8px;
+  --agro-borde-radius:      12px;
+  --agro-borde-radius-lg:   20px;
+  --agro-borde-radius-xl:   32px;
+  --agro-borde-radius-full: 9999px;
+
+  /* ── Sombras ─────────────────────────────────────── */
+  --agro-sombra-sm:         0 1px 3px rgba(0,0,0,0.08);
+  --agro-sombra-md:         0 4px 12px rgba(46,125,50,0.12);
+  --agro-sombra-lg:         0 10px 25px -5px rgba(46,125,50,0.15), 0 8px 10px -6px rgba(0,0,0,0.05);
+  --agro-sombra-card:       0 10px 25px -5px rgba(46,125,50,0.08), 0 8px 10px -6px rgba(0,0,0,0.03);
+
+  /* ── Transiciones ────────────────────────────────── */
+  --agro-transition-fast:   150ms ease;
+  --agro-transition:        250ms ease;
+  --agro-transition-slow:   400ms ease;
+
+  /* ── Z-index layers ──────────────────────────────── */
+  --agro-z-toast:           9999;
+  --agro-z-modal:           9000;
+  --agro-z-nav:             1000;
+  --agro-z-overlay:         500;
+}
