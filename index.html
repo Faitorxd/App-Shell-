@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroCesar Marketplace — Del campo a tu mesa</title>
+  <meta name="description" content="AgroCesar Marketplace: Plataforma agrícola que conecta productores con compradores de forma directa, segura y sin intermediarios.">
+
+  <!-- ── Sistema de Diseño (tokens del Shell) ─────────── -->
+  <link rel="stylesheet" href="tokens.css">
+
+  <style>
+    /* ── Reset & Base ───────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--agro-fuente);
+      background: var(--agro-fondo-gradiente);
+      min-height: 100vh;
+      color: var(--agro-texto-principal);
+      overflow-x: hidden;
+    }
+
+    /* ── Navbar ─────────────────────────────────────── */
+    #agro-navbar {
+      position: sticky;
+      top: 0;
+      z-index: var(--agro-z-nav);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--agro-borde);
+      box-shadow: var(--agro-sombra-sm);
+      padding: 0 var(--agro-espaciado-xl);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--agro-espaciado-md);
+    }
+
+    .agro-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--agro-primario);
+      font-weight: 700;
+      font-size: var(--agro-fuente-size-xl);
+      letter-spacing: -0.02em;
+      transition: opacity var(--agro-transition-fast);
+    }
+    .agro-logo:hover { opacity: 0.85; }
+    .agro-logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--agro-primario), var(--agro-exito));
+      border-radius: var(--agro-borde-radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 1.2rem;
+      box-shadow: var(--agro-sombra-md);
+    }
+
+    .agro-nav-links {
+      display: flex;
+      gap: var(--agro-espaciado-sm);
+      list-style: none;
+    }
+
+    .agro-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: var(--agro-borde-radius-full);
+      text-decoration: none;
+      font-size: var(--agro-fuente-size-sm);
+      font-weight: 500;
+      color: var(--agro-texto-secundario);
+      transition: all var(--agro-transition-fast);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+    }
+    .agro-nav-link:hover {
+      background: var(--agro-primario-light);
+      color: var(--agro-primario);
+    }
+    .agro-nav-link.active {
+      background: var(--agro-primario);
+      color: white;
+      box-shadow: var(--agro-sombra-md);
+    }
+
+    /* Indicador de estado en la nav */
+    .agro-nav-badge {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px; height: 18px;
+      padding: 0 5px;
+      background: var(--agro-secundario);
+      color: var(--agro-texto-principal);
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .agro-nav-badge.visible { display: inline-flex; }
+
+    /* ── Panel lateral del Carrito ──────────────────── */
+    #agro-carrito-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: calc(var(--agro-z-modal) - 1);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--agro-transition);
+    }
+    #agro-carrito-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+    #agro-carrito-panel {
+      position: fixed;
+      top: 0; right: 0;
+      width: min(440px, 95vw);
+      height: 100dvh;
+      background: white;
+      box-shadow: -8px 0 32px rgba(0,0,0,0.15);
+      z-index: var(--agro-z-modal);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(110%);
+      transition: transform var(--agro-transition) cubic-bezier(0.4,0,0.2,1);
+      border-left: 1px solid var(--agro-borde);
+    }
+    #agro-carrito-panel.visible {
+      transform: translateX(0);
+    }
+    #agro-carrito-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--agro-espaciado-md) var(--agro-espaciado-lg);
+      border-bottom: 1px solid var(--agro-borde);
+      background: var(--agro-primario-light);
+      flex-shrink: 0;
+    }
+    #agro-carrito-header-bar h2 {
+      font-size: var(--agro-fuente-size-lg);
+      font-weight: 700;
+      color: var(--agro-primario);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #agro-carrito-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--agro-texto-secundario);
+      padding: 4px 8px;
+      border-radius: var(--agro-borde-radius-sm);
+      transition: all var(--agro-transition-fast);
+    }
+    #agro-carrito-close:hover {
+      background: var(--agro-error-light);
+      color: var(--agro-error);
+    }
+    #agro-carrito-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--agro-espaciado-lg);
+    }
+
+    /* ── Main Content Area ──────────────────────────── */
+    #agro-main {
+      min-height: calc(100vh - 64px);
+      padding: var(--agro-espaciado-xl);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ── Contenedor del MFE activo ──────────────────── */
+    #agro-mfe-container {
+      width: 100%;
+      min-height: 400px;
+      position: relative;
+    }
+
+    /* ── Pantalla de bienvenida ─────────────────────── */
+    #agro-welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--agro-espaciado-2xl) var(--agro-espaciado-md);
+      gap: var(--agro-espaciado-lg);
+    }
+    .agro-welcome-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      background: var(--agro-primario-light);
+      color: var(--agro-primario);
+      border-radius: var(--agro-borde-radius-full);
+      font-size: var(--agro-fuente-size-sm);
+      font-weight: 600;
+      border: 1px solid rgba(46,125,50,0.2);
+    }
+    .agro-welcome-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, var(--agro-primario) 0%, var(--agro-exito) 50%, var(--agro-secundario) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .agro-welcome-subtitle {
+      font-size: var(--agro-fuente-size-lg);
+      color: var(--agro-texto-secundario);
+      max-width: 520px;
+      line-height: 1.6;
+    }
+    .agro-welcome-cta {
+      display: flex;
+      gap: var(--agro-espaciado-md);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .agro-btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: var(--agro-primario);
+      color: white;
+      border: none;
+      border-radius: var(--agro-borde-radius);
+      font-size: var(--agro-fuente-size-md);
+      font-weight: 600;
+      font-family: var(--agro-fuente);
+      cursor: pointer;
+      transition: all var(--agro-transition-fast);
+      box-shadow: var(--agro-sombra-md);
+      text-decoration: none;
+    }
+    .agro-btn-primary:hover {
+      background: var(--agro-primario-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--agro-sombra-lg);
+    }
+    .agro-btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: white;
+      color: var(--agro-primario);
+      border: 1.5px solid var(--agro-borde);
+      border-radius: var(--agro-borde-radius);
+      font-size: var(--agro-fuente-size-md);
+      font-weight: 600;
+      font-family: var(--agro-fuente);
+      cursor: pointer;
+      transition: all var(--agro-transition-fast);
+      text-decoration: none;
+    }
+    .agro-btn-secondary:hover {
+      background: var(--agro-primario-light);
+      border-color: var(--agro-primario);
+      transform: translateY(-1px);
+    }
+
+    /* Feature cards en welcome */
+    .agro-feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--agro-espaciado-md);
+      width: 100%;
+      max-width: 700px;
+    }
+    .agro-feature-card {
+      background: white;
+      border: 1px solid var(--agro-borde);
+      border-radius: var(--agro-borde-radius);
+      padding: var(--agro-espaciado-lg);
+      text-align: left;
+      box-shadow: var(--agro-sombra-sm);
+      transition: all var(--agro-transition);
+    }
+    .agro-feature-card:hover {
+      box-shadow: var(--agro-sombra-md);
+      transform: translateY(-2px);
+      border-color: var(--agro-primario);
+    }
+    .agro-feature-icon { font-size: 2rem; margin-bottom: 8px; }
+    .agro-feature-title { font-weight: 600; font-size: var(--agro-fuente-size-md); margin-bottom: 4px; }
+    .agro-feature-desc { font-size: var(--agro-fuente-size-sm); color: var(--agro-texto-secundario); line-height: 1.5; }
+
+    /* ── Spinner de carga ───────────────────────────── */
+    #agro-loader {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--agro-espaciado-md);
+      padding: var(--agro-espaciado-2xl);
+    }
+    #agro-loader.visible { display: flex; }
+    .agro-spinner {
+      width: 48px; height: 48px;
+      border: 4px solid var(--agro-primario-light);
+      border-top-color: var(--agro-primario);
+      border-radius: 50%;
+      animation: agro-spin 0.8s linear infinite;
+    }
+    @keyframes agro-spin { to { transform: rotate(360deg); } }
+    .agro-loader-text {
+      font-size: var(--agro-fuente-size-sm);
+      color: var(--agro-texto-secundario);
+      font-weight: 500;
+    }
+
+    /* ── Panel de Error / Resiliencia ───────────────── */
+    #agro-error-panel {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--agro-espaciado-md);
+      padding: var(--agro-espaciado-2xl);
+      background: var(--agro-error-light);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: var(--agro-borde-radius-lg);
+      text-align: center;
+    }
+    #agro-error-panel.visible { display: flex; }
+    .agro-error-icon { font-size: 3rem; }
+    .agro-error-title {
+      font-size: var(--agro-fuente-size-xl);
+      font-weight: 700;
+      color: #b91c1c;
+    }
+    .agro-error-msg {
+      font-size: var(--agro-fuente-size-sm);
+      color: #7f1d1d;
+      max-width: 420px;
+      line-height: 1.6;
+    }
+    .agro-btn-retry {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: var(--agro-borde-radius);
+      font-size: var(--agro-fuente-size-md);
+      font-weight: 600;
+      font-family: var(--agro-fuente);
+      cursor: pointer;
+      transition: all var(--agro-transition-fast);
+      box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+    }
+    .agro-btn-retry:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+    }
+
+    /* ── Toast / Notificaciones Globales ────────────── */
+    #agro-toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: var(--agro-z-toast);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .agro-toast {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: white;
+      border-radius: var(--agro-borde-radius);
+      box-shadow: var(--agro-sombra-lg);
+      border-left: 4px solid var(--agro-primario);
+      font-size: var(--agro-fuente-size-sm);
+      font-weight: 500;
+      color: var(--agro-texto-principal);
+      min-width: 280px;
+      max-width: 380px;
+      pointer-events: all;
+      animation: agro-toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .agro-toast.saliendo {
+      animation: agro-toast-out 0.3s ease forwards;
+    }
+    .agro-toast-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .agro-toast-content { flex: 1; }
+    .agro-toast-title { font-weight: 700; margin-bottom: 2px; }
+    .agro-toast-msg { color: var(--agro-texto-secundario); font-size: var(--agro-fuente-size-xs); }
+
+    /* Variantes de color del toast */
+    .agro-toast.exito  { border-left-color: var(--agro-exito); }
+    .agro-toast.advertencia { border-left-color: var(--agro-advertencia); }
+    .agro-toast.error  { border-left-color: var(--agro-error); }
+    .agro-toast.info   { border-left-color: var(--agro-info); }
+
+    @keyframes agro-toast-in {
+      from { opacity: 0; transform: translateX(120%); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes agro-toast-out {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(120%); }
+    }
+
+    /* ── Footer ─────────────────────────────────────── */
+    #agro-footer {
+      text-align: center;
+      padding: var(--agro-espaciado-lg);
+      font-size: var(--agro-fuente-size-xs);
+      color: var(--agro-texto-secundario);
+      border-top: 1px solid var(--agro-borde);
+      margin-top: var(--agro-espaciado-2xl);
+    }
+
+    /* ── Responsive ─────────────────────────────────── */
+    @media (max-width: 640px) {
+      #agro-navbar { padding: 0 var(--agro-espaciado-md); }
+      #agro-main { padding: var(--agro-espaciado-md); }
+      .agro-nav-link span { display: none; }
+      #agro-toast-container { right: 12px; bottom: 12px; }
+      .agro-toast { min-width: unset; width: calc(100vw - 24px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════
+       NAVBAR — Shell permanente (siempre visible)
+  ══════════════════════════════════════════════════════ -->
+  <nav id="agro-navbar" role="navigation" aria-label="Navegación principal">
+    <a href="#/" class="agro-logo" id="agro-logo-link">
+      <div class="agro-logo-icon">🌿</div>
+      <span>AgroCesar</span>
+    </a>
+
+    <ul class="agro-nav-links" role="list">
+      <li>
+        <button
+          id="nav-catalogo"
+          class="agro-nav-link active"
+          onclick="AgroShell.navegar('catalogo')"
+          aria-label="Ver catálogo de productos"
+        >
+          🛍️ <span>Catálogo</span>
+        </button>
+      </li>
+      <li>
+        <button
+          id="nav-operaciones"
+          class="agro-nav-link"
+          onclick="AgroShell.navegar('operaciones')"
+          aria-label="Ver panel del productor y operaciones"
+        >
+          🧑‍🌾 <span>Panel Productor</span>
+        </button>
+      </li>
+      <li>
+        <button
+          id="nav-pedidos"
+          class="agro-nav-link"
+          onclick="AgroShell.navegar('pedidos')"
+          aria-label="Ver seguimiento de pedidos"
+        >
+          📦 <span>Mis Pedidos</span>
+          <span id="agro-badge-pedidos" class="agro-nav-badge" aria-live="polite"></span>
+        </button>
+      </li>
+      <li>
+        <button
+          id="nav-carrito"
+          class="agro-nav-link"
+          onclick="AgroShell.abrirCarrito()"
+          aria-label="Ver carrito de compras"
+        >
+          🛒 <span>Carrito</span>
+          <span id="agro-badge-carrito" class="agro-nav-badge" aria-live="polite"></span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════
+       ÁREA PRINCIPAL
+  ══════════════════════════════════════════════════════ -->
+  <main id="agro-main" role="main">
+
+    <!-- Spinner de carga de MFE -->
+    <div id="agro-loader" role="status" aria-label="Cargando módulo">
+      <div class="agro-spinner"></div>
+      <p class="agro-loader-text" id="agro-loader-text">Cargando módulo...</p>
+    </div>
+
+    <!-- Panel de error / resiliencia -->
+    <div id="agro-error-panel" role="alert" aria-live="assertive">
+      <div class="agro-error-icon">📡</div>
+      <h2 class="agro-error-title">No se pudo cargar el módulo</h2>
+      <p class="agro-error-msg" id="agro-error-msg">
+        El servicio no está disponible en este momento.
+        Verifica tu conexión o inténtalo de nuevo.
+      </p>
+      <button
+        id="agro-btn-reintentar"
+        class="agro-btn-retry"
+        aria-label="Reintentar conexión"
+      >
+        🔄 Reintentar conexión
+      </button>
+    </div>
+
+    <!-- Contenedor donde se montan los MFEs -->
+    <div id="agro-mfe-container" role="region" aria-live="polite" aria-label="Contenido principal"></div>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════════
+       CARRITO PANEL — Siempre montado, se desliza al abrir
+  ══════════════════════════════════════════════════════ -->
+  <div id="agro-carrito-overlay" onclick="AgroShell.cerrarCarrito()" aria-hidden="true"></div>
+  <aside id="agro-carrito-panel" role="complementary" aria-label="Carrito de compras">
+    <div id="agro-carrito-header-bar">
+      <h2>🛒 Carrito de Compras</h2>
+      <button id="agro-carrito-close" onclick="AgroShell.cerrarCarrito()" aria-label="Cerrar carrito">✕</button>
+    </div>
+    <div id="agro-carrito-content">
+      <!-- mountAgroLogistica renderiza aquí -->
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════
+       TOAST CONTAINER — Global, siempre montado
+  ══════════════════════════════════════════════════════ -->
+  <div id="agro-toast-container" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- ══════════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════════════ -->
+  <footer id="agro-footer">
+    <p>AgroCesar Marketplace &copy; 2026 &mdash; Grupo 4 &mdash;
+      Shell por <strong>Walter Yesid Otero Torres</strong>
+    </p>
+  </footer>
+
+  <!-- ══════════════════════════════════════════════════
+       SCRIPTS DE LOS MFEs (loaders controlados)
+       Se cargan aquí pero se montan bajo demanda via rutas
+  ══════════════════════════════════════════════════════ -->
+  <script src="mfe-catalogo-mock.js"></script>
+  <script src="mfe-pedidos-mock.js"></script>
+  <script src="mfe-operaciones.js"></script>
+  <!-- Carrito/Logística: siempre cargado para escuchar carrito:agregado -->
+  <script src="https://bespoke-entremet-48552c.netlify.app/logistica.js"></script>
+
+  <!-- ══════════════════════════════════════════════════
+       APP SHELL — Orquestador principal (Vanilla JS)
+       Propietario: Walter Yesid Otero Torres
+  ══════════════════════════════════════════════════════ -->
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Configuración del Shell ──────────────────────────
+    const SHELL_CONFIG = {
+      mfes: {
+        catalogo: {
+          nombre: 'MFE Catálogo (Camilo - Preact)',
+          loader: async () => {
+            // El mfe-catalogo-mock.js ya expone window.mountAgroCatalogo
+            if (!window.mountAgroCatalogo) {
+              throw new Error('mountAgroCatalogo no está disponible');
+            }
+          },
+          mount: (containerId) => window.mountAgroCatalogo(containerId, {}),
+          unmount: (containerId) => {
+            if (window.unmountAgroCatalogo) window.unmountAgroCatalogo(containerId);
+          }
+        },
+        operaciones: {
+          nombre: 'MFE Operaciones (Panel Productor - React 18)',
+          loader: async () => {
+            await window.cargarMFEOperaciones();
+          },
+          mount: (containerId) => {
+            if (window.mountAgroOperaciones) {
+              window.mountAgroOperaciones(containerId, {
+                usuario: { nombre: 'Walter Otero (Productor)', rol: 'productor' }
+              });
+            }
+          },
+          unmount: (containerId) => {
+            if (window.unmountAgroOperaciones) {
+              window.unmountAgroOperaciones(containerId);
+            }
+          }
+        },
+        pedidos: {
+          nombre: 'MFE Seguimiento de Pedidos (Anderson - Vue 3)',
+          loader: async () => {
+            // Delegar al loader centralizado que gestiona Vue 3 + pedidos.js
+            await window.cargarMFEPedidos();
+          },
+          mount: (containerId) => {
+            const props = estado.ultimoPedido ? {
+              pedidoId: estado.ultimoPedido.pedidoId || estado.ultimoPedido.id,
+              total: estado.ultimoPedido.total || 0,
+              conductorId: estado.ultimoPedido.idConductor || estado.ultimoPedido.conductorId || null
+            } : {};
+            return window.mountAgroSeguimiento(containerId, props);
+          },
+          unmount: (containerId) => {
+            if (window.unmountAgroSeguimiento) window.unmountAgroSeguimiento(containerId);
+          }
+        }
+      },
+      contendorId: 'agro-mfe-container',
+      rutaDefecto: 'catalogo'
+    };
+
+    // Recuperar último pedido activo de localStorage si existe
+    let ultimoPedidoGuardado = null;
+    try {
+      const guardado = localStorage.getItem('agro_ultimo_pedido');
+      if (guardado) ultimoPedidoGuardado = JSON.parse(guardado);
+    } catch (e) {}
+
+    // ── Estado interno del Shell ─────────────────────────
+    const estado = {
+      rutaActual: null,
+      cargando: false,
+      intentoActual: 0,
+      maxIntentos: 3,
+      pedidosActivos: ultimoPedidoGuardado ? 1 : 0,
+      ultimoPedido: ultimoPedidoGuardado
+    };
+
+    // ── Referencias al DOM ───────────────────────────────
+    const $loader         = document.getElementById('agro-loader');
+    const $loaderText     = document.getElementById('agro-loader-text');
+    const $errorPanel     = document.getElementById('agro-error-panel');
+    const $errorMsg       = document.getElementById('agro-error-msg');
+    const $container      = document.getElementById(SHELL_CONFIG.contendorId);
+    const $btnReintentar  = document.getElementById('agro-btn-reintentar');
+    const $toastContainer = document.getElementById('agro-toast-container');
+    const $badgePedidos   = document.getElementById('agro-badge-pedidos');
+    const $badgeCarrito   = document.getElementById('agro-badge-carrito');
+    const $carritoPanel   = document.getElementById('agro-carrito-panel');
+    const $carritoOverlay = document.getElementById('agro-carrito-overlay');
+    const $carritoContent = document.getElementById('agro-carrito-content');
+
+    // ──────────────────────────────────────────────────────
+    //  SISTEMA DE NOTIFICACIONES TOAST
+    // ──────────────────────────────────────────────────────
+    const ESTADOS_PEDIDO_CONFIG = {
+      'Recibido':        { emoji: '✅', tipo: 'exito',       duracion: 4000 },
+      'En preparación':  { emoji: '👨‍🍳', tipo: 'info',        duracion: 4000 },
+      'En camino':       { emoji: '🚚', tipo: 'advertencia', duracion: 5000 },
+      'Entregado':       { emoji: '🎉', tipo: 'exito',       duracion: 6000 },
+    };
+
+    /**
+     * Muestra una notificación Toast en el Shell.
+     * @param {string} titulo - Título del toast
+     * @param {string} mensaje - Mensaje secundario
+     * @param {string} [tipo='exito'] - Variante: exito|advertencia|error|info
+     * @param {string} [emoji='🔔'] - Emoji/icono del toast
+     * @param {number} [duracion=4000] - Duración en ms antes de desaparecer
+     */
+    function mostrarToast(titulo, mensaje, tipo = 'exito', emoji = '🔔', duracion = 4000, onClick = null) {
+      const toast = document.createElement('div');
+      toast.className = `agro-toast ${tipo}`;
+      if (onClick) toast.style.cursor = 'pointer';
+      toast.setAttribute('role', 'status');
+      toast.innerHTML = `
+        <span class="agro-toast-icon">${emoji}</span>
+        <div class="agro-toast-content">
+          <div class="agro-toast-title">${titulo}</div>
+          <div class="agro-toast-msg">${mensaje}</div>
+        </div>
+      `;
+
+      $toastContainer.appendChild(toast);
+
+      // Auto-remover con animación de salida
+      const timer = setTimeout(() => {
+        toast.classList.add('saliendo');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+      }, duracion);
+
+      // Click para cerrar manualmente y ejecutar callback opcional
+      toast.addEventListener('click', () => {
+        clearTimeout(timer);
+        toast.classList.add('saliendo');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+        if (typeof onClick === 'function') onClick();
+      });
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  CARRITO — Abrir / Cerrar panel lateral
+    // ──────────────────────────────────────────────────────
+    let carritoItems = 0;
+
+    function abrirCarrito() {
+      $carritoPanel.classList.add('visible');
+      $carritoOverlay.classList.add('visible');
+      document.getElementById('nav-carrito').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarCarrito() {
+      $carritoPanel.classList.remove('visible');
+      $carritoOverlay.classList.remove('visible');
+      document.getElementById('nav-carrito').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Montar el MFE Carrito/Logística en el panel lateral al arranque
+    // Permanece montado TODO el tiempo para escuchar carrito:agregado
+    function inicializarCarrito() {
+      // Cargar CSS del carrito
+      if (!document.querySelector('link[href="https://bespoke-entremet-48552c.netlify.app/styles.css"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://bespoke-entremet-48552c.netlify.app/styles.css';
+        document.head.appendChild(link);
+      }
+
+      // Montar cuando logistica.js esté disponible
+      const intentarMount = () => {
+        if (typeof window.mountAgroLogistica === 'function') {
+          window.mountAgroLogistica('agro-carrito-content', { offlineMode: false });
+          console.log('[AgroCesar Shell] 🛒 MFE Carrito/Logística montado en panel lateral');
+        } else {
+          // Reintentar en 200ms si el script aún no cargó
+          setTimeout(intentarMount, 200);
+        }
+      };
+      intentarMount();
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  LISTENER GLOBAL — pedido:estado (Emitido por Anderson)
+    //  El Shell captura esto SIN IMPORTAR en qué vista está.
+    // ──────────────────────────────────────────────────────
+    window.addEventListener('pedido:estado', (event) => {
+      const { pedidoId, estado: estadoPedido } = event.detail || {};
+      if (!estadoPedido) return;
+
+      const config = ESTADOS_PEDIDO_CONFIG[estadoPedido] || {
+        emoji: '📦', tipo: 'info', duracion: 4000
+      };
+
+      console.log(`[AgroCesar Shell] 📦 pedido:estado recibido → Pedido ${pedidoId}: ${estadoPedido}`);
+
+      mostrarToast(
+        `Pedido #${pedidoId}`,
+        `Estado actualizado: ${estadoPedido}`,
+        config.tipo,
+        config.emoji,
+        config.duracion
+      );
+
+      // Si el pedido llega a "Entregado", limpiar badge de la nav y storage
+      if (estadoPedido === 'Entregado') {
+        estado.pedidosActivos = Math.max(0, estado.pedidosActivos - 1);
+        actualizarBadge();
+        try { localStorage.removeItem('agro_ultimo_pedido'); } catch (e) {}
+      }
+    });
+
+    // ──────────────────────────────────────────────────────
+    //  LISTENER — carrito:agregado (Emitido por Catálogo de Camilo)
+    //  El Shell escucha para: badge + toast + abrir panel
+    // ──────────────────────────────────────────────────────
+    window.addEventListener('carrito:agregado', (event) => {
+      const { nombre, precio } = event.detail || {};
+      console.log('[AgroCesar Shell] 🛒 carrito:agregado recibido:', event.detail);
+
+      // Incrementar badge del carrito
+      carritoItems++;
+      $badgeCarrito.textContent = carritoItems;
+      $badgeCarrito.classList.add('visible');
+
+      // Abrir el panel del carrito automáticamente
+      abrirCarrito();
+
+      mostrarToast(
+        '¡Agregado al carrito!',
+        `${nombre} — $${precio ? precio.toLocaleString('es-CO') : ''}`,
+        'exito',
+        '🛒',
+        3000
+      );
+    });
+
+    // ──────────────────────────────────────────────────────
+    //  LISTENER — producto:publicado (Emitido por Operaciones)
+    // ──────────────────────────────────────────────────────
+    window.addEventListener('producto:publicado', (event) => {
+      // Ignorar eventos rehidratados para no repetir toasts ni redirecciones
+      if (event.detail && event.detail._rehidratado) return;
+
+      const { nombre, precio, categoria } = event.detail || {};
+      console.log('[AgroCesar Shell] 🌱 producto:publicado recibido:', event.detail);
+
+      mostrarToast(
+        '¡Producto publicado!',
+        `${nombre || 'Nuevo producto'} (${categoria || 'Cosecha'}) — $${precio ? precio.toLocaleString('es-CO') : ''} COP`,
+        'exito',
+        '🌱',
+        4000
+      );
+
+      // Redireccionar inmediatamente al catálogo como solicitó el usuario
+      AgroShell.navegar('catalogo');
+    });
+
+    // ──────────────────────────────────────────────────────
+    //  LISTENER — pedido:confirmado (para conteo de badge + limpiar carrito)
+    // ──────────────────────────────────────────────────────
+    const onPedidoConfirmado = (event) => {
+      const detail = event.detail || {};
+      console.log('[AgroCesar Shell] 📦 pedido:confirmado recibido:', detail);
+      estado.pedidosActivos = 1;
+      estado.ultimoPedido = detail;
+      try {
+        localStorage.setItem('agro_ultimo_pedido', JSON.stringify(detail));
+      } catch (e) {}
+      actualizarBadge();
+
+      // Limpiar badge del carrito tras confirmar pedido
+      carritoItems = 0;
+      $badgeCarrito.textContent = '0';
+      $badgeCarrito.classList.remove('visible');
+      cerrarCarrito();
+
+      // Redirigir y montar automáticamente el seguimiento de pedidos
+      if (window.location.hash === '#/pedidos') {
+        cargarMFE('pedidos');
+      } else {
+        AgroShell.navegar('pedidos');
+      }
+    };
+    window.addEventListener('pedido:confirmado', onPedidoConfirmado);
+    window.addEventListener('pedido:confirmado:v2', onPedidoConfirmado);
+
+    function actualizarBadge() {
+      if (estado.pedidosActivos > 0) {
+        $badgePedidos.textContent = estado.pedidosActivos;
+        $badgePedidos.classList.add('visible');
+      } else {
+        $badgePedidos.classList.remove('visible');
+      }
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  UI HELPERS
+    // ──────────────────────────────────────────────────────
+    function mostrarLoader(texto = 'Cargando módulo...') {
+      $loaderText.textContent = texto;
+      $loader.classList.add('visible');
+      $errorPanel.classList.remove('visible');
+      $container.innerHTML = '';
+    }
+
+    function ocultarLoader() {
+      $loader.classList.remove('visible');
+    }
+
+    function mostrarError(mfeNombre, urlOrError) {
+      $errorMsg.textContent = `No se pudo conectar con "${mfeNombre}". Verifica tu conexión a internet e inténtalo de nuevo.`;
+      $errorPanel.classList.add('visible');
+      ocultarLoader();
+      console.error(`[AgroCesar Shell] ❌ Error al cargar ${mfeNombre}:`, urlOrError);
+    }
+
+    function ocultarError() {
+      $errorPanel.classList.remove('visible');
+    }
+
+    function actualizarNavActiva(ruta) {
+      document.querySelectorAll('.agro-nav-link').forEach(btn => btn.classList.remove('active'));
+      const btnActivo = document.getElementById(`nav-${ruta}`);
+      if (btnActivo) btnActivo.classList.add('active');
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  ENRUTADOR Y CARGADOR DE MFEs
+    // ──────────────────────────────────────────────────────
+
+    /**
+     * Carga y monta un MFE con:
+     * - Medición de performance
+     * - Manejo de errores y resiliencia
+     * - Spinner mientras carga
+     * @param {string} ruta - Clave del MFE en SHELL_CONFIG.mfes
+     */
+    async function cargarMFE(ruta) {
+      const config = SHELL_CONFIG.mfes[ruta];
+      if (!config) {
+        console.warn(`[AgroCesar Shell] Ruta desconocida: ${ruta}`);
+        return;
+      }
+
+      if (estado.cargando) return;
+      estado.cargando = true;
+
+      // Desmontar MFE anterior si existe
+      if (estado.rutaActual) {
+        const configAnterior = SHELL_CONFIG.mfes[estado.rutaActual];
+        if (configAnterior) {
+          try {
+            configAnterior.unmount(SHELL_CONFIG.contendorId);
+          } catch (e) {
+            console.warn('[AgroCesar Shell] Error al desmontar MFE anterior:', e);
+          }
+        }
+      }
+
+      mostrarLoader(`Conectando con ${config.nombre}...`);
+      ocultarError();
+      actualizarNavActiva(ruta);
+
+      const inicioTotal = performance.now();
+
+      try {
+        // 1. Ejecutar loader (cargar dependencias y scripts)
+        const inicioLoader = performance.now();
+        await config.loader();
+        const duracionLoader = Math.round(performance.now() - inicioLoader);
+        console.log(`[AgroCesar] ${config.nombre} cargado en ${duracionLoader}ms`);
+
+        // 2. Montar el MFE en el contenedor
+        ocultarLoader();
+        $container.innerHTML = '';
+
+        const inicioMount = performance.now();
+        await config.mount(SHELL_CONFIG.contendorId);
+        const duracionMount = Math.round(performance.now() - inicioMount);
+
+        const duracionTotal = Math.round(performance.now() - inicioTotal);
+        console.log(`[AgroCesar] ${config.nombre} montado en ${duracionMount}ms (total: ${duracionTotal}ms)`);
+
+        estado.rutaActual = ruta;
+        estado.intentoActual = 0;
+
+      } catch (err) {
+        mostrarError(config.nombre, err);
+        estado.intentoActual++;
+
+        // Auto-reintento hasta maxIntentos con backoff
+        if (estado.intentoActual < estado.maxIntentos) {
+          const espera = estado.intentoActual * 2000;
+          console.log(`[AgroCesar Shell] ⏳ Reintentando en ${espera}ms... (intento ${estado.intentoActual}/${estado.maxIntentos})`);
+          setTimeout(() => {
+            estado.cargando = false;
+            cargarMFE(ruta);
+          }, espera);
+          return;
+        }
+      } finally {
+        estado.cargando = false;
+      }
+    }
+
+    // ──────────────────────────────────────────────────────
+    //  ENRUTADOR HASH
+    // ──────────────────────────────────────────────────────
+    function resolverRuta(hash) {
+      const mapa = {
+        '#/':            'catalogo',
+        '#/catalogo':    'catalogo',
+        '#/pedidos':     'pedidos',
+        '#/operaciones': 'operaciones',
+      };
+      return mapa[hash] || SHELL_CONFIG.rutaDefecto;
+    }
+
+    function manejarCambioRuta() {
+      const hash = window.location.hash || '#/';
+      const ruta = resolverRuta(hash);
+      if (ruta !== estado.rutaActual || !estado.rutaActual) {
+        cargarMFE(ruta);
+      }
+    }
+
+    // Escuchar cambios de hash (navegación)
+    window.addEventListener('hashchange', manejarCambioRuta);
+
+    // ──────────────────────────────────────────────────────
+    //  API PÚBLICA DEL SHELL (window.AgroShell)
+    // ──────────────────────────────────────────────────────
+    window.AgroShell = {
+      /**
+       * Navega a una ruta del Shell.
+       * @param {string} ruta - 'catalogo' | 'pedidos' | 'operaciones'
+       */
+      navegar(ruta) {
+        const hashes = {
+          catalogo:    '#/catalogo',
+          pedidos:     '#/pedidos',
+          operaciones: '#/operaciones',
+        };
+        window.location.hash = hashes[ruta] || '#/';
+      },
+
+      /** Abre el panel lateral del carrito */
+      abrirCarrito,
+
+      /** Cierra el panel lateral del carrito */
+      cerrarCarrito,
+
+      /**
+       * Muestra un toast manualmente desde cualquier MFE.
+       */
+      mostrarToast,
+
+      /**
+       * Obtiene la ruta actualmente activa.
+       */
+      getRutaActual() {
+        return estado.rutaActual;
+      }
+    };
+
+    // ──────────────────────────────────────────────────────
+    //  BOTÓN REINTENTAR
+    // ──────────────────────────────────────────────────────
+    $btnReintentar.addEventListener('click', () => {
+      estado.intentoActual = 0;
+      estado.cargando = false;
+      ocultarError();
+      const hash = window.location.hash || '#/';
+      cargarMFE(resolverRuta(hash));
+    });
+
+    // ──────────────────────────────────────────────────────
+    //  ARRANQUE INICIAL
+    // ──────────────────────────────────────────────────────
+    console.log('[AgroCesar Shell] 🌿 Iniciando App Shell — Walter Yesid Otero Torres');
+    manejarCambioRuta();
+    // Montar el MFE Carrito/Logística en el panel lateral (siempre activo)
+    inicializarCarrito();
+
+  })();
+  </script>
+
+</body>
+</html>
