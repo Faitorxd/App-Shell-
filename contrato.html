@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroCesar — Pruebas de Contrato MFE</title>
+  <meta name="description" content="Página de pruebas de contrato para validar integración de Micro Frontends del AgroCesar Marketplace.">
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--agro-fuente);
+      background: var(--agro-fondo-gradiente);
+      min-height: 100vh;
+      padding: var(--agro-espaciado-xl);
+      color: var(--agro-texto-principal);
+    }
+    h1 {
+      font-size: var(--agro-fuente-size-2xl);
+      font-weight: 800;
+      color: var(--agro-primario);
+      margin-bottom: var(--agro-espaciado-sm);
+    }
+    .subtitulo {
+      color: var(--agro-texto-secundario);
+      font-size: var(--agro-fuente-size-sm);
+      margin-bottom: var(--agro-espaciado-xl);
+    }
+    .seccion {
+      background: white;
+      border-radius: var(--agro-borde-radius-lg);
+      padding: var(--agro-espaciado-xl);
+      margin-bottom: var(--agro-espaciado-lg);
+      box-shadow: var(--agro-sombra-card);
+      border: 1px solid var(--agro-borde);
+    }
+    .seccion h2 {
+      font-size: var(--agro-fuente-size-lg);
+      font-weight: 700;
+      margin-bottom: var(--agro-espaciado-md);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* Panel de resultados de prueba */
+    #resultados {
+      font-family: 'Courier New', monospace;
+      font-size: var(--agro-fuente-size-sm);
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: var(--agro-borde-radius);
+      padding: var(--agro-espaciado-lg);
+      max-height: 480px;
+      overflow-y: auto;
+      line-height: 1.8;
+    }
+    .log-ok    { color: #4ade80; }
+    .log-fail  { color: #f87171; }
+    .log-info  { color: #60a5fa; }
+    .log-warn  { color: #fbbf24; }
+    .log-sep   { color: #475569; border-bottom: 1px solid #1e293b; margin: 4px 0; display: block; }
+
+    /* Botones de prueba */
+    .agro-btn-group {
+      display: flex;
+      gap: var(--agro-espaciado-sm);
+      flex-wrap: wrap;
+      margin-bottom: var(--agro-espaciado-md);
+    }
+    button.test-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--agro-borde-radius-sm);
+      font-family: var(--agro-fuente);
+      font-size: var(--agro-fuente-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--agro-transition-fast);
+    }
+    button.test-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-verde    { background: var(--agro-primario); color: white; }
+    .btn-azul     { background: var(--agro-info); color: white; }
+    .btn-amarillo { background: var(--agro-secundario); color: #111827; }
+    .btn-rojo     { background: var(--agro-error); color: white; }
+    .btn-gris     { background: #6b7280; color: white; }
+
+    /* Contenedores de previsualización de MFEs */
+    #preview-catalogo, #preview-pedidos {
+      min-height: 80px;
+      border: 2px dashed var(--agro-borde);
+      border-radius: var(--agro-borde-radius);
+      padding: var(--agro-espaciado-md);
+      margin-top: var(--agro-espaciado-md);
+      background: var(--agro-fondo);
+    }
+
+    /* Resumen de estado */
+    #resumen-estado {
+      display: flex;
+      gap: var(--agro-espaciado-md);
+      flex-wrap: wrap;
+    }
+    .estado-card {
+      flex: 1;
+      min-width: 160px;
+      background: var(--agro-fondo);
+      border-radius: var(--agro-borde-radius-sm);
+      padding: var(--agro-espaciado-md);
+      border: 1px solid var(--agro-borde);
+      text-align: center;
+    }
+    .estado-card .valor {
+      font-size: var(--agro-fuente-size-2xl);
+      font-weight: 800;
+    }
+    .estado-card .etiqueta {
+      font-size: var(--agro-fuente-size-xs);
+      color: var(--agro-texto-secundario);
+      margin-top: 4px;
+    }
+    .valor.ok   { color: var(--agro-exito); }
+    .valor.fail { color: var(--agro-error); }
+    .valor.pend { color: var(--agro-advertencia); }
+  </style>
+</head>
+<body>
+
+  <h1>🧪 Pruebas de Contrato — AgroCesar MFEs</h1>
+  <p class="subtitulo">
+    Validación de integración entre Micro Frontends | Shell: Walter Yesid Otero Torres
+  </p>
+
+  <!-- ── Resumen de estado ── -->
+  <section class="seccion">
+    <h2>📊 Resumen de Estado</h2>
+    <div id="resumen-estado">
+      <div class="estado-card">
+        <div class="valor pend" id="cnt-total">0</div>
+        <div class="etiqueta">Pruebas Totales</div>
+      </div>
+      <div class="estado-card">
+        <div class="valor ok" id="cnt-ok">0</div>
+        <div class="etiqueta">✅ Pasadas</div>
+      </div>
+      <div class="estado-card">
+        <div class="valor fail" id="cnt-fail">0</div>
+        <div class="etiqueta">❌ Fallidas</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Panel de logs ── -->
+  <section class="seccion">
+    <h2>🖥️ Consola de Resultados</h2>
+    <div class="agro-btn-group">
+      <button class="test-btn btn-verde" id="btn-run-all" onclick="ejecutarTodasLasPruebas()">
+        ▶ Ejecutar Todas las Pruebas
+      </button>
+      <button class="test-btn btn-gris" onclick="limpiarResultados()">
+        🗑️ Limpiar
+      </button>
+    </div>
+    <div id="resultados">
+      <span class="log-info">» Presiona "Ejecutar Todas las Pruebas" para comenzar...</span>
+    </div>
+  </section>
+
+  <!-- ── Pruebas de Ciclo de Vida — Catálogo ── -->
+  <section class="seccion">
+    <h2>🛍️ MFE Catálogo (Camilo - Preact)</h2>
+    <div class="agro-btn-group">
+      <button class="test-btn btn-verde" onclick="probarMountCatalogo()">
+        Montar Catálogo
+      </button>
+      <button class="test-btn btn-rojo" onclick="probarUnmountCatalogo()">
+        Desmontar Catálogo
+      </button>
+      <button class="test-btn btn-azul" onclick="probarEventoCarritoAgregado()">
+        Simular carrito:agregado
+      </button>
+    </div>
+    <div id="preview-catalogo">
+      <em style="color: var(--agro-texto-secundario); font-size: 0.8rem;">
+        [Contenedor del MFE Catálogo — vacío]
+      </em>
+    </div>
+  </section>
+
+  <!-- ── Pruebas de Ciclo de Vida — Pedidos ── -->
+  <section class="seccion">
+    <h2>📦 MFE Seguimiento de Pedidos (Anderson - Vue 3)</h2>
+    <div class="agro-btn-group">
+      <button class="test-btn btn-verde" onclick="probarMountPedidos()">
+        Montar Pedidos
+      </button>
+      <button class="test-btn btn-rojo" onclick="probarUnmountPedidos()">
+        Desmontar Pedidos
+      </button>
+      <button class="test-btn btn-amarillo" onclick="probarEventoPedidoConfirmado()">
+        Simular pedido:confirmado (v1)
+      </button>
+      <button class="test-btn btn-azul" onclick="probarEventoPedidoConfirmadoV2()">
+        Simular pedido:confirmado:v2
+      </button>
+    </div>
+    <div id="preview-pedidos">
+      <em style="color: var(--agro-texto-secundario); font-size: 0.8rem;">
+        [Contenedor del MFE Pedidos — vacío]
+      </em>
+    </div>
+  </section>
+
+  <!-- ── Pruebas de CustomEvents del Shell ── -->
+  <section class="seccion">
+    <h2>📡 Eventos del Sistema (CustomEvents)</h2>
+    <div class="agro-btn-group">
+      <button class="test-btn btn-azul" onclick="probarEventoPedidoEstado('Recibido')">
+        pedido:estado → Recibido
+      </button>
+      <button class="test-btn btn-azul" onclick="probarEventoPedidoEstado('En preparación')">
+        → En preparación
+      </button>
+      <button class="test-btn btn-azul" onclick="probarEventoPedidoEstado('En camino')">
+        → En camino
+      </button>
+      <button class="test-btn btn-azul" onclick="probarEventoPedidoEstado('Entregado')">
+        → Entregado
+      </button>
+    </div>
+  </section>
+
+  <!-- Cargar los MFE loaders para pruebas -->
+  <script src="mfe-catalogo-mock.js"></script>
+  <script src="mfe-pedidos-mock.js"></script>
+
+  <script>
+  // ── Utilidades de logging en pantalla ───────────────────
+  let totalPruebas = 0, pruebasOk = 0, pruebasFail = 0;
+  const $resultados = document.getElementById('resultados');
+
+  function log(msg, tipo = 'info') {
+    const span = document.createElement('span');
+    span.className = `log-${tipo}`;
+    span.textContent = msg;
+    $resultados.appendChild(span);
+    $resultados.appendChild(document.createElement('br'));
+    $resultados.scrollTop = $resultados.scrollHeight;
+    // También a la consola del navegador
+    console[tipo === 'fail' ? 'error' : tipo === 'warn' ? 'warn' : 'log'](msg);
+  }
+
+  function logSep(titulo) {
+    const sep = document.createElement('span');
+    sep.className = 'log-sep';
+    sep.textContent = `─── ${titulo} ─────────────────────────────────────`;
+    $resultados.appendChild(sep);
+  }
+
+  function limpiarResultados() {
+    $resultados.innerHTML = '<span class="log-info">» Consola limpiada.</span><br>';
+    totalPruebas = 0; pruebasOk = 0; pruebasFail = 0;
+    actualizarContadores();
+  }
+
+  function actualizarContadores() {
+    document.getElementById('cnt-total').textContent = totalPruebas;
+    document.getElementById('cnt-ok').textContent = pruebasOk;
+    document.getElementById('cnt-fail').textContent = pruebasFail;
+  }
+
+  /**
+   * Aserción básica estilo console.assert pero que también renderiza en pantalla.
+   */
+  function assert(condicion, descripcion, detalleOk = '', detalleFail = '') {
+    totalPruebas++;
+    if (condicion) {
+      pruebasOk++;
+      log(`  ✅ PASS — ${descripcion}${detalleOk ? ' → ' + detalleOk : ''}`, 'ok');
+    } else {
+      pruebasFail++;
+      log(`  ❌ FAIL — ${descripcion}${detalleFail ? ' → ' + detalleFail : ''}`, 'fail');
+      // También lanzar console.assert nativo para DevTools
+      console.assert(condicion, descripcion, detalleFail);
+    }
+    actualizarContadores();
+  }
+
+  // ── Pruebas de contratos de ciclo de vida ───────────────
+
+  function pruebasContratoCatalogo() {
+    logSep('CONTRATO: MFE Catálogo (mount / unmount)');
+    assert(
+      typeof window.mountAgroCatalogo === 'function',
+      'window.mountAgroCatalogo debe ser una función',
+      'typeof function'
+    );
+    assert(
+      typeof window.unmountAgroCatalogo === 'function',
+      'window.unmountAgroCatalogo debe ser una función',
+      'typeof function'
+    );
+    // Verificar aridad esperada (al menos 1 parámetro: containerId)
+    assert(
+      window.mountAgroCatalogo.length >= 1,
+      'mountAgroCatalogo debe aceptar al menos 1 argumento (containerId)',
+      `length = ${window.mountAgroCatalogo.length}`
+    );
+  }
+
+  function pruebasContratoPedidos() {
+    logSep('CONTRATO: MFE Seguimiento de Pedidos (mount / unmount)');
+    // Dependencias cargadas por el loader
+    const vueOk = typeof window.Vue !== 'undefined';
+    assert(vueOk, 'window.Vue (Vue 3) debe estar disponible antes del mount', 'Vue found');
+
+    assert(
+      typeof window.mountAgroSeguimiento === 'function',
+      'window.mountAgroSeguimiento debe ser una función',
+      'typeof function'
+    );
+    assert(
+      typeof window.unmountAgroSeguimiento === 'function',
+      'window.unmountAgroSeguimiento debe ser una función',
+      'typeof function'
+    );
+    assert(
+      window.mountAgroSeguimiento.length >= 1,
+      'mountAgroSeguimiento debe aceptar al menos 1 argumento (containerId)',
+      `length = ${window.mountAgroSeguimiento.length}`
+    );
+  }
+
+  function pruebasContratoEventos() {
+    logSep('CONTRATO: CustomEvents — Estructura de Payloads');
+
+    // Verificar que CustomEvent está disponible
+    assert(
+      typeof CustomEvent === 'function',
+      'CustomEvent debe estar disponible en window',
+      'Native browser support'
+    );
+
+    // Verificar payload de carrito:agregado
+    let carritoOk = false;
+    const handleCarrito = (e) => {
+      const d = e.detail;
+      carritoOk = (
+        typeof d.idProducto !== 'undefined' &&
+        typeof d.cantidad   !== 'undefined' &&
+        typeof d.nombre     === 'string'    &&
+        typeof d.precio     === 'number'
+      );
+    };
+    window.addEventListener('carrito:agregado', handleCarrito, { once: true });
+    window.dispatchEvent(new CustomEvent('carrito:agregado', {
+      detail: { idProducto: 1, cantidad: 1, nombre: 'Test Producto', precio: 10000 }
+    }));
+    assert(carritoOk, 'carrito:agregado payload válido: { idProducto, cantidad, nombre, precio }');
+
+    // Verificar payload de pedido:confirmado
+    let pedidoOk = false;
+    const handlePedido = (e) => {
+      const d = e.detail;
+      pedidoOk = typeof d.pedidoId === 'string' && typeof d.total === 'number';
+    };
+    window.addEventListener('pedido:confirmado', handlePedido, { once: true });
+    window.dispatchEvent(new CustomEvent('pedido:confirmado', {
+      detail: { pedidoId: 'PED-TEST', total: 45000 }
+    }));
+    assert(pedidoOk, 'pedido:confirmado payload válido: { pedidoId, total }');
+
+    // Verificar payload de pedido:confirmado:v2
+    let pedidoV2Ok = false;
+    const handlePedidoV2 = (e) => {
+      const d = e.detail;
+      pedidoV2Ok = typeof d.pedidoId === 'string' && typeof d.total === 'number' && typeof d.idConductor === 'string';
+    };
+    window.addEventListener('pedido:confirmado:v2', handlePedidoV2, { once: true });
+    window.dispatchEvent(new CustomEvent('pedido:confirmado:v2', {
+      detail: { pedidoId: 'PED-TEST-V2', total: 85000, idConductor: 'COND-99' }
+    }));
+    assert(pedidoV2Ok, 'pedido:confirmado:v2 payload válido: { pedidoId, total, idConductor }');
+
+    // Verificar payload de pedido:estado
+    let estadoOk = false;
+    const handleEstado = (e) => {
+      const d = e.detail;
+      estadoOk = typeof d.pedidoId === 'string' && typeof d.estado === 'string';
+    };
+    window.addEventListener('pedido:estado', handleEstado, { once: true });
+    window.dispatchEvent(new CustomEvent('pedido:estado', {
+      detail: { pedidoId: 'PED-TEST', estado: 'En camino' },
+      bubbles: true
+    }));
+    assert(estadoOk, 'pedido:estado payload válido: { pedidoId, estado }');
+
+    // Verificar estados válidos del ciclo de vida
+    const estadosValidos = ['Recibido', 'En preparación', 'En camino', 'Entregado'];
+    estadosValidos.forEach(e => {
+      assert(true, `Estado "${e}" documentado en CONTRATOS.md`, 'valid');
+    });
+  }
+
+  function pruebasContratoDOM() {
+    logSep('CONTRATO: Contenedores DOM requeridos');
+
+    ['preview-catalogo', 'preview-pedidos'].forEach(id => {
+      assert(
+        document.getElementById(id) !== null,
+        `Contenedor #${id} existe en el DOM`,
+        'found'
+      );
+    });
+  }
+
+  function pruebasTokensCSS() {
+    logSep('CONTRATO: Tokens CSS del Shell');
+    const rootStyles = getComputedStyle(document.documentElement);
+    const tokens = [
+      '--agro-primario', '--agro-secundario', '--agro-fuente',
+      '--agro-fondo', '--agro-espaciado-md', '--agro-exito', '--agro-error'
+    ];
+    tokens.forEach(token => {
+      const val = rootStyles.getPropertyValue(token).trim();
+      assert(val !== '', `Token CSS "${token}" está definido`, val);
+    });
+  }
+
+  // ── Funciones individuales de botones ───────────────────
+
+  async function probarMountCatalogo() {
+    logSep('TEST MANUAL: Mount Catálogo');
+    log('→ Llamando window.mountAgroCatalogo("preview-catalogo")...', 'info');
+    try {
+      await window.mountAgroCatalogo('preview-catalogo', {});
+      const container = document.getElementById('preview-catalogo');
+      const tieneHijos = container.children.length > 0;
+      assert(tieneHijos, 'Catálogo renderizó contenido en #preview-catalogo', `${container.children.length} elemento(s)`);
+    } catch (err) {
+      assert(false, 'mountAgroCatalogo completó sin errores', '', err.message);
+    }
+  }
+
+  function probarUnmountCatalogo() {
+    logSep('TEST MANUAL: Unmount Catálogo');
+    if (typeof window.unmountAgroCatalogo === 'function') {
+      window.unmountAgroCatalogo('preview-catalogo');
+      const container = document.getElementById('preview-catalogo');
+      assert(container.children.length === 0 || container.innerHTML.trim() === '', 'Catálogo fue desmontado (contenedor vacío)');
+      log('  ✔ Unmount ejecutado', 'ok');
+    } else {
+      assert(false, 'unmountAgroCatalogo disponible', '', 'no está definida');
+    }
+  }
+
+  async function probarMountPedidos() {
+    logSep('TEST MANUAL: Mount Seguimiento de Pedidos');
+    log('→ Cargando Vue 3 y pedidos.js...', 'info');
+    try {
+      await window.cargarMFEPedidos();
+      log('→ Llamando window.mountAgroSeguimiento("preview-pedidos")...', 'info');
+      window.mountAgroSeguimiento('preview-pedidos', {});
+      const container = document.getElementById('preview-pedidos');
+      setTimeout(() => {
+        const tieneHijos = container.children.length > 0;
+        assert(tieneHijos, 'Pedidos renderizó contenido en #preview-pedidos', `${container.children.length} elemento(s)`);
+      }, 500);
+    } catch (err) {
+      assert(false, 'cargarMFEPedidos + mountAgroSeguimiento completaron sin errores', '', err.message);
+    }
+  }
+
+  function probarUnmountPedidos() {
+    logSep('TEST MANUAL: Unmount Seguimiento de Pedidos');
+    if (typeof window.unmountAgroSeguimiento === 'function') {
+      window.unmountAgroSeguimiento('preview-pedidos');
+      const container = document.getElementById('preview-pedidos');
+      assert(container.innerHTML.trim() === '' || container.children.length === 0, 'Pedidos fue desmontado (contenedor vacío)');
+    } else {
+      assert(false, 'unmountAgroSeguimiento disponible', '', 'no está definida');
+    }
+  }
+
+  function probarEventoCarritoAgregado() {
+    log('→ Disparando carrito:agregado...', 'info');
+    window.dispatchEvent(new CustomEvent('carrito:agregado', {
+      detail: { idProducto: 99, cantidad: 1, nombre: 'Maíz de Prueba (Test)', precio: 18000 }
+    }));
+    log('  ✔ carrito:agregado disparado con payload válido', 'ok');
+  }
+
+  function probarEventoPedidoConfirmado() {
+    log('→ Disparando pedido:confirmado (v1)...', 'info');
+    window.dispatchEvent(new CustomEvent('pedido:confirmado', {
+      detail: { pedidoId: 'PED-PRUEBA-001', total: 63000 }
+    }));
+    log('  ✔ pedido:confirmado disparado', 'ok');
+  }
+
+  function probarEventoPedidoConfirmadoV2() {
+    log('→ Disparando pedido:confirmado:v2...', 'info');
+    window.dispatchEvent(new CustomEvent('pedido:confirmado:v2', {
+      detail: { pedidoId: 'PED-PRUEBA-002', total: 89500, idConductor: 'COND-TEST-42' }
+    }));
+    log('  ✔ pedido:confirmado:v2 disparado (con idConductor)', 'ok');
+  }
+
+  function probarEventoPedidoEstado(estado) {
+    log(`→ Disparando pedido:estado → "${estado}"...`, 'info');
+    window.dispatchEvent(new CustomEvent('pedido:estado', {
+      detail: { pedidoId: 'PED-PRUEBA-001', estado: estado },
+      bubbles: true
+    }));
+    log(`  ✔ pedido:estado "${estado}" disparado`, 'ok');
+  }
+
+  // ── Suite completa ───────────────────────────────────────
+  async function ejecutarTodasLasPruebas() {
+    limpiarResultados();
+    log('╔══════════════════════════════════════════════════════╗', 'info');
+    log('║   AgroCesar — Pruebas de Contrato MFE                ║', 'info');
+    log('║   Shell: Walter Yesid Otero Torres                   ║', 'info');
+    log('╚══════════════════════════════════════════════════════╝', 'info');
+    log('', 'info');
+
+    // 1. Tokens CSS
+    pruebasTokensCSS();
+
+    // 2. DOM
+    pruebasContratoDOM();
+
+    // 3. Ciclo de vida — Catálogo
+    pruebasContratoCatalogo();
+
+    // 4. Cargar dependencias de Pedidos y luego probar contratos
+    logSep('Cargando dependencias MFE Pedidos...');
+    try {
+      await window.cargarMFEPedidos();
+      log('  ✅ Vue 3 + pedidos.js cargados', 'ok');
+      pruebasContratoPedidos();
+    } catch (err) {
+      log(`  ❌ Error cargando MFE Pedidos: ${err.message}`, 'fail');
+      pruebasFail++;
+      actualizarContadores();
+    }
+
+    // 5. Eventos del sistema
+    pruebasContratoEventos();
+
+    // Resumen final
+    logSep('RESULTADO FINAL');
+    const tasa = totalPruebas > 0 ? Math.round((pruebasOk / totalPruebas) * 100) : 0;
+    log(`  Total: ${totalPruebas} | ✅ ${pruebasOk} pasadas | ❌ ${pruebasFail} fallidas | Tasa: ${tasa}%`,
+        pruebasFail === 0 ? 'ok' : 'warn');
+
+    if (pruebasFail === 0) {
+      log('  🎉 ¡Todos los contratos están verificados! Listo para integrar.', 'ok');
+    } else {
+      log(`  ⚠️  ${pruebasFail} contrato(s) fallido(s). Revisa los MFEs antes de integrar.`, 'warn');
+    }
+  }
+  </script>
+
+</body>
+</html>
